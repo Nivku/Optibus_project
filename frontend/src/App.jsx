@@ -71,7 +71,7 @@ export default function App() {
         } finally {
             setIsLoading(false);
         }
-        // fetchVehicles יופעל מחדש בכל שינוי בסינון, מיון או חיפוש
+        // fetchVehicles
     }, [searchPlate, filterStatus, sortCriteria]);
 
     useEffect(() => {
@@ -98,7 +98,7 @@ export default function App() {
                 throw new Error(errorData.message || 'Failed to add vehicle.');
             }
 
-            fetchVehicles(); // רענון הרשימה
+            fetchVehicles();
         } catch (error) {
             handleApiError(error, 'add a new vehicle');
         }
@@ -122,7 +122,7 @@ export default function App() {
                 throw new Error(errorData.message || 'Failed to update vehicle.');
             }
 
-            fetchVehicles(); // רענון הרשימה
+            fetchVehicles();
         } catch (error) {
             handleApiError(error, 'edit the vehicle');
         }
@@ -141,10 +141,10 @@ export default function App() {
                 throw new Error(errorData.message || 'Failed to update status.');
             }
 
-            fetchVehicles(); // רענון הרשימה
+            fetchVehicles();
         } catch (error) {
             handleApiError(error, 'update the status');
-            fetchVehicles(); // רענון הרשימה כדי להחזיר את הערך הקודם אם העדכון נכשל
+            fetchVehicles();
         }
     };
 
@@ -155,8 +155,7 @@ export default function App() {
             return;
         }
 
-        // אזהרה: לוגיקה זו תמצא רכב רק אם הוא קיים ברשימה *המסוננת* הנוכחית
-        // עדיף היה לשלוח בקשת חיפוש לשרת קודם, אך לשם הפשטות נשאיר כך
+
         const vehicleToDelete = vehicles.find(v => v.licensePlate === plate);
 
         if (!vehicleToDelete) {
@@ -181,7 +180,7 @@ export default function App() {
 
             alert('Vehicle deleted successfully!');
             setPlateToDelete('');
-            fetchVehicles(); // רענון הרשימה
+            fetchVehicles();
         } catch (error) {
             handleApiError(error, 'delete the vehicle');
         }
@@ -268,7 +267,7 @@ export default function App() {
                     <table className="w-full text-left">
                         <thead>
                         <tr className="bg-gray-50">
-                            {/* עמודה חדשה */}
+
                             <th className="p-3">Vehicle ID</th>
                             <th className="p-3">License Plate</th>
                             <th className="p-3">Status</th>
@@ -278,17 +277,17 @@ export default function App() {
                         </thead>
                         <tbody>
                         {isLoading ? (
-                            // colSpan עודכן ל-5
+
                             <tr><td colSpan="5" className="text-center p-8">Loading...</td></tr>
                         ) : vehicles.length === 0 && !networkError ? (
-                            // colSpan עודכן ל-5
+
                             <tr><td colSpan="5" className="text-center p-8">No vehicles found.</td></tr>
                         ) : (
                             vehicles.map((vehicle) => (
                                 <tr key={vehicle.id} className="border-b hover:bg-gray-50">
-                                    {/* תא חדש שמציג את ה-ID */}
+
                                     <td className="p-3 font-mono text-xs text-gray-600" title={vehicle.id}>
-                                        {/* הצגת 8 התווים הראשונים של ה-ID */}
+
                                         {vehicle.id.substring(0, 8)}...
                                     </td>
                                     <td className="p-3 font-mono">{vehicle.licensePlate}</td>

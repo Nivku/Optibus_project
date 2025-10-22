@@ -5,7 +5,6 @@ import { VehicleStatus } from '../types/vehicleModel';
 export const vehicles = sqliteTable('vehicles', {
     id: text('id').primaryKey(),
 
-    // הוספנו הגדרת ייחודיות (unique) לבסיס הנתונים
     licensePlate: text('licensePlate').notNull().unique(),
 
     status: text('status', {

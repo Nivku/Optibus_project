@@ -2,10 +2,8 @@ import { db } from '../db';
 import { vehicles, Vehicle } from '../db/schema';
 import { VehicleStatus } from '../types/vehicleModel';
 import { randomUUID } from 'crypto';
-// הוספנו את כל הפונקציות הנדרשות מ-drizzle-orm
 import { eq, sql, and, like, asc, desc } from 'drizzle-orm';
 
-// --- פונקציות עזר (פרטיות) ---
 
 const getVehicleById = async (id: string): Promise<Vehicle | undefined> => {
     const result = await db.select().from(vehicles).where(eq(vehicles.id, id));
@@ -32,12 +30,7 @@ const canMoveToMaintenance = async (): Promise<boolean> => {
 };
 
 
-// --- פונקציות השירות (ציבוריות) ---
 
-/**
- * --- זו הפונקציה ששונתה ---
- * היא מקבלת אובייקט אופציות ובונה שאילתה דינמית
- */
 export const getAllVehicles = async (options: {
     status?: VehicleStatus;
     sortBy?: 'createdAt' | 'status';
@@ -45,36 +38,28 @@ export const getAllVehicles = async (options: {
     searchPlate?: string;
 }): Promise<Vehicle[]> => {
 
-    // שימוש בתחביר db.query לבניית שאילתה דינמית
     const queryOptions: Parameters<typeof db.query.vehicles.findMany>[0] = {};
 
-    // מערך דינמי להוספת תנאי סינון
     const conditions = [];
 
-    // 1. סינון לפי סטטוס
     if (options.status) {
         conditions.push(eq(vehicles.status, options.status));
     }
 
-    // 2. חיפוש לפי מספר רישוי
     if (options.searchPlate) {
-        // "like" מאפשר חיפוש חלקי (למשל "123" ימצא "7123456")
-        conditions.push(like(vehicles.licensePlate, `%${options.searchPlate}%`));
+        conditions.push(like(vehicles.licensePlate, `${options.searchPlate}%`));
     }
 
-    // הוספת כל התנאים לפקודת ה-WHERE
     if (conditions.length > 0) {
         queryOptions.where = and(...conditions);
     }
 
-    // 3. מיון
-    const sortBy = options.sortBy || 'createdAt'; // ברירת מחדל: תאריך יצירה
-    const sortOrder = options.sortOrder || 'desc'; // ברירת מחדל: יורד (החדש ביותר)
+    const sortBy = options.sortBy || 'createdAt';
+    const sortOrder = options.sortOrder || 'desc';
 
     const sortColumn = sortBy === 'status' ? vehicles.status : vehicles.createdAt;
     queryOptions.orderBy = [sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn)];
 
-    // הרצת השאילתה עם האובייקט הדינמי
     return await db.query.vehicles.findMany(queryOptions);
 };
 

@@ -8,7 +8,6 @@ import {
 
 const router = Router();
 
-// הגדרת נתיבי ה-CRUD
 router.get('/', handleGetAllVehicles);       // R - Read (List View)
 router.post('/', handleCreateVehicle);      // C - Create
 router.put('/:id', handleUpdateVehicle);    // U - Update

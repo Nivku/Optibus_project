@@ -2,12 +2,12 @@
   "compilerOptions": {
     "target": "es6",
     "module": "commonjs",
-    "outDir": "./dist",    // תיקיית הפלט (קומפילציה)
-    "rootDir": "./src",    // תיקיית הקלט (מקור)
+    "outDir": "./dist",
+    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*"] // סרוק רק קבצים בתוך src
+  "include": ["src/**/*"]
 }

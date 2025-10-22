@@ -2,10 +2,8 @@ import { Request, Response } from 'express';
 import * as vehicleService from '../services/vehicleService';
 import { VehicleStatus } from '../types/vehicleModel';
 
-// פונקציה זו עודכנה לקבל פרמטרים של סינון, מיון וחיפוש
 export const handleGetAllVehicles = async (req: Request, res: Response) => {
     try {
-        // קריאת הפרמטרים מה-Query String
         const { status, sortBy, sortOrder, searchPlate } = req.query;
 
         const allVehicles = await vehicleService.getAllVehicles({
@@ -30,8 +28,7 @@ export const handleCreateVehicle = async (req: Request, res: Response) => {
         const newVehicle = await vehicleService.createVehicle(licensePlate);
         res.status(201).json(newVehicle);
     } catch (error: any) {
-        // --- שינוי ---
-        // הוספנו תפיסה לשגיאת תקינות מספר רישוי
+
         if (error.message.includes('Invalid license plate')) {
             return res.status(400).json({ message: error.message }); // 400 Bad Request
         }
@@ -65,8 +62,7 @@ export const handleUpdateVehicle = async (req: Request, res: Response) => {
     } catch (error: any) {
         const errorMessage = error.message;
 
-        // --- שינוי ---
-        // הוספנו תפיסה לשגיאת תקינות מספר רישוי
+
         if (errorMessage.includes('Invalid license plate')) {
             return res.status(400).json({ message: errorMessage });
         }
