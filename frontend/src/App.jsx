@@ -18,6 +18,11 @@ export default function App() {
     const [plateToDelete, setPlateToDelete] = useState('');
     const [networkError, setNetworkError] = useState(null);
 
+    // --- State for Filtering, Sorting, and Searching ---
+    const [searchPlate, setSearchPlate] = useState('');
+    const [filterStatus, setFilterStatus] = useState('all');
+    const [sortCriteria, setSortCriteria] = useState('createdAt-desc');
+
     // --- Error Handling Helper ---
     const handleApiError = (error, action = 'perform the action') => {
         console.error(error);
@@ -29,12 +34,33 @@ export default function App() {
         }
     };
 
-    // --- Data Fetching ---
+    // --- Data Fetching (Updated) ---
     const fetchVehicles = useCallback(async () => {
         setIsLoading(true);
         setNetworkError(null);
+
+        // Build query parameters
+        const params = new URLSearchParams();
+
+        // 1. Add filter
+        if (filterStatus !== 'all') {
+            params.append('status', filterStatus);
+        }
+
+        // 2. Add search
+        if (searchPlate.trim() !== '') {
+            params.append('searchPlate', searchPlate.trim());
+        }
+
+        // 3. Add sorting
+        const [sortBy, sortOrder] = sortCriteria.split('-');
+        params.append('sortBy', sortBy);
+        params.append('sortOrder', sortOrder);
+
+        const queryString = params.toString();
+
         try {
-            const response = await fetch(API_BASE_URL);
+            const response = await fetch(`${API_BASE_URL}?${queryString}`);
             if (!response.ok) {
                 throw new Error('Server responded with an error.');
             }
@@ -45,7 +71,8 @@ export default function App() {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+        // fetchVehicles יופעל מחדש בכל שינוי בסינון, מיון או חיפוש
+    }, [searchPlate, filterStatus, sortCriteria]);
 
     useEffect(() => {
         fetchVehicles();
@@ -71,7 +98,7 @@ export default function App() {
                 throw new Error(errorData.message || 'Failed to add vehicle.');
             }
 
-            fetchVehicles();
+            fetchVehicles(); // רענון הרשימה
         } catch (error) {
             handleApiError(error, 'add a new vehicle');
         }
@@ -95,7 +122,7 @@ export default function App() {
                 throw new Error(errorData.message || 'Failed to update vehicle.');
             }
 
-            fetchVehicles();
+            fetchVehicles(); // רענון הרשימה
         } catch (error) {
             handleApiError(error, 'edit the vehicle');
         }
@@ -114,10 +141,10 @@ export default function App() {
                 throw new Error(errorData.message || 'Failed to update status.');
             }
 
-            fetchVehicles();
+            fetchVehicles(); // רענון הרשימה
         } catch (error) {
             handleApiError(error, 'update the status');
-            fetchVehicles(); // Refresh list to revert failed change
+            fetchVehicles(); // רענון הרשימה כדי להחזיר את הערך הקודם אם העדכון נכשל
         }
     };
 
@@ -128,6 +155,8 @@ export default function App() {
             return;
         }
 
+        // אזהרה: לוגיקה זו תמצא רכב רק אם הוא קיים ברשימה *המסוננת* הנוכחית
+        // עדיף היה לשלוח בקשת חיפוש לשרת קודם, אך לשם הפשטות נשאיר כך
         const vehicleToDelete = vehicles.find(v => v.licensePlate === plate);
 
         if (!vehicleToDelete) {
@@ -152,7 +181,7 @@ export default function App() {
 
             alert('Vehicle deleted successfully!');
             setPlateToDelete('');
-            fetchVehicles();
+            fetchVehicles(); // רענון הרשימה
         } catch (error) {
             handleApiError(error, 'delete the vehicle');
         }
@@ -197,12 +226,50 @@ export default function App() {
                             Delete Vehicle
                         </button>
                     </div>
+
+                    {/* --- Filter, Sort, and Search Controls --- */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        {/* Search Input */}
+                        <input
+                            type="text"
+                            placeholder="Search by license plate..."
+                            value={searchPlate}
+                            onChange={(e) => setSearchPlate(e.target.value)}
+                            className="border rounded p-2"
+                        />
+
+                        {/* Status Filter */}
+                        <select
+                            value={filterStatus}
+                            onChange={(e) => setFilterStatus(e.target.value)}
+                            className="border rounded p-2"
+                        >
+                            <option value="all">All Statuses</option>
+                            <option value={VehicleStatus.AVAILABLE}>Available</option>
+                            <option value={VehicleStatus.IN_USE}>InUse</option>
+                            <option value={VehicleStatus.MAINTENANCE}>Maintenance</option>
+                        </select>
+
+                        {/* Sort By */}
+                        <select
+                            value={sortCriteria}
+                            onChange={(e) => setSortCriteria(e.target.value)}
+                            className="border rounded p-2"
+                        >
+                            <option value="createdAt-desc">Newest First</option>
+                            <option value="createdAt-asc">Oldest First</option>
+                            <option value="status-asc">Status (A-Z)</option>
+                            <option value="status-desc">Status (Z-A)</option>
+                        </select>
+                    </div>
                 </header>
 
                 <main>
                     <table className="w-full text-left">
                         <thead>
                         <tr className="bg-gray-50">
+                            {/* עמודה חדשה */}
+                            <th className="p-3">Vehicle ID</th>
                             <th className="p-3">License Plate</th>
                             <th className="p-3">Status</th>
                             <th className="p-3">Created At</th>
@@ -211,12 +278,19 @@ export default function App() {
                         </thead>
                         <tbody>
                         {isLoading ? (
-                            <tr><td colSpan="4" className="text-center p-8">Loading...</td></tr>
+                            // colSpan עודכן ל-5
+                            <tr><td colSpan="5" className="text-center p-8">Loading...</td></tr>
                         ) : vehicles.length === 0 && !networkError ? (
-                            <tr><td colSpan="4" className="text-center p-8">No vehicles found.</td></tr>
+                            // colSpan עודכן ל-5
+                            <tr><td colSpan="5" className="text-center p-8">No vehicles found.</td></tr>
                         ) : (
                             vehicles.map((vehicle) => (
                                 <tr key={vehicle.id} className="border-b hover:bg-gray-50">
+                                    {/* תא חדש שמציג את ה-ID */}
+                                    <td className="p-3 font-mono text-xs text-gray-600" title={vehicle.id}>
+                                        {/* הצגת 8 התווים הראשונים של ה-ID */}
+                                        {vehicle.id.substring(0, 8)}...
+                                    </td>
                                     <td className="p-3 font-mono">{vehicle.licensePlate}</td>
                                     <td className="p-3">
                                         <select

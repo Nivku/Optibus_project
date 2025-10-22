@@ -2,10 +2,20 @@ import { Request, Response } from 'express';
 import * as vehicleService from '../services/vehicleService';
 import { VehicleStatus } from '../types/vehicleModel';
 
+// פונקציה זו עודכנה לקבל פרמטרים של סינון, מיון וחיפוש
 export const handleGetAllVehicles = async (req: Request, res: Response) => {
     try {
-        const allVehles = await vehicleService.getAllVehicles();
-        res.status(200).json(allVehles);
+        // קריאת הפרמטרים מה-Query String
+        const { status, sortBy, sortOrder, searchPlate } = req.query;
+
+        const allVehicles = await vehicleService.getAllVehicles({
+            status: status as VehicleStatus | undefined,
+            sortBy: sortBy as 'createdAt' | 'status' | undefined,
+            sortOrder: sortOrder as 'asc' | 'desc' | undefined,
+            searchPlate: searchPlate as string | undefined,
+        });
+
+        res.status(200).json(allVehicles);
     } catch (error) {
         res.status(500).json({ message: 'Error retrieving vehicles' });
     }
@@ -20,7 +30,11 @@ export const handleCreateVehicle = async (req: Request, res: Response) => {
         const newVehicle = await vehicleService.createVehicle(licensePlate);
         res.status(201).json(newVehicle);
     } catch (error: any) {
-        // הוספנו תפיסה לשגיאת מספר רישוי כפול
+        // --- שינוי ---
+        // הוספנו תפיסה לשגיאת תקינות מספר רישוי
+        if (error.message.includes('Invalid license plate')) {
+            return res.status(400).json({ message: error.message }); // 400 Bad Request
+        }
         if (error.message.includes('already exists')) {
             return res.status(409).json({ message: error.message }); // 409 Conflict
         }
@@ -51,7 +65,11 @@ export const handleUpdateVehicle = async (req: Request, res: Response) => {
     } catch (error: any) {
         const errorMessage = error.message;
 
-        // הוספנו תפיסה לשגיאת מספר רישוי כפול
+        // --- שינוי ---
+        // הוספנו תפיסה לשגיאת תקינות מספר רישוי
+        if (errorMessage.includes('Invalid license plate')) {
+            return res.status(400).json({ message: errorMessage });
+        }
         if (errorMessage.includes('already exists')) {
             return res.status(409).json({ message: errorMessage });
         }
@@ -84,3 +102,4 @@ export const handleDeleteVehicle = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error deleting vehicle', error: errorMessage });
     }
 };
+

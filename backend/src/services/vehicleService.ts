@@ -2,7 +2,8 @@ import { db } from '../db';
 import { vehicles, Vehicle } from '../db/schema';
 import { VehicleStatus } from '../types/vehicleModel';
 import { randomUUID } from 'crypto';
-import { eq, sql, and, ne } from 'drizzle-orm';
+// הוספנו את כל הפונקציות הנדרשות מ-drizzle-orm
+import { eq, sql, and, like, asc, desc } from 'drizzle-orm';
 
 // --- פונקציות עזר (פרטיות) ---
 
@@ -11,14 +12,15 @@ const getVehicleById = async (id: string): Promise<Vehicle | undefined> => {
     return result[0];
 };
 
-/**
- * פונקציית עזר חדשה לבדיקת קיום מספר רישוי
- */
 const getVehicleByPlate = async (plate: string): Promise<Vehicle | undefined> => {
     const result = await db.select().from(vehicles).where(eq(vehicles.licensePlate, plate));
     return result[0];
 };
 
+const isValidLicensePlate = (plate: string): boolean => {
+    const plateRegex = /^\d{7,8}$/;
+    return plateRegex.test(plate);
+};
 
 const canMoveToMaintenance = async (): Promise<boolean> => {
     const totalCountResult = await db.select({ count: sql<number>`count(*)` }).from(vehicles);
@@ -32,12 +34,54 @@ const canMoveToMaintenance = async (): Promise<boolean> => {
 
 // --- פונקציות השירות (ציבוריות) ---
 
-export const getAllVehicles = async (): Promise<Vehicle[]> => {
-    return await db.select().from(vehicles);
+/**
+ * --- זו הפונקציה ששונתה ---
+ * היא מקבלת אובייקט אופציות ובונה שאילתה דינמית
+ */
+export const getAllVehicles = async (options: {
+    status?: VehicleStatus;
+    sortBy?: 'createdAt' | 'status';
+    sortOrder?: 'asc' | 'desc';
+    searchPlate?: string;
+}): Promise<Vehicle[]> => {
+
+    // שימוש בתחביר db.query לבניית שאילתה דינמית
+    const queryOptions: Parameters<typeof db.query.vehicles.findMany>[0] = {};
+
+    // מערך דינמי להוספת תנאי סינון
+    const conditions = [];
+
+    // 1. סינון לפי סטטוס
+    if (options.status) {
+        conditions.push(eq(vehicles.status, options.status));
+    }
+
+    // 2. חיפוש לפי מספר רישוי
+    if (options.searchPlate) {
+        // "like" מאפשר חיפוש חלקי (למשל "123" ימצא "7123456")
+        conditions.push(like(vehicles.licensePlate, `%${options.searchPlate}%`));
+    }
+
+    // הוספת כל התנאים לפקודת ה-WHERE
+    if (conditions.length > 0) {
+        queryOptions.where = and(...conditions);
+    }
+
+    // 3. מיון
+    const sortBy = options.sortBy || 'createdAt'; // ברירת מחדל: תאריך יצירה
+    const sortOrder = options.sortOrder || 'desc'; // ברירת מחדל: יורד (החדש ביותר)
+
+    const sortColumn = sortBy === 'status' ? vehicles.status : vehicles.createdAt;
+    queryOptions.orderBy = [sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn)];
+
+    // הרצת השאילתה עם האובייקט הדינמי
+    return await db.query.vehicles.findMany(queryOptions);
 };
 
 export const createVehicle = async (licensePlate: string): Promise<Vehicle> => {
-    // שלב 1: בדיקה אם מספר הרישוי כבר קיים
+    if (!isValidLicensePlate(licensePlate)) {
+        throw new Error('Invalid license plate: Must be 7 or 8 digits only.');
+    }
     const existingVehicle = await getVehicleByPlate(licensePlate);
     if (existingVehicle) {
         throw new Error(`Vehicle with license plate ${licensePlate} already exists.`);
@@ -65,8 +109,10 @@ export const updateVehicle = async (
         return null;
     }
 
-    // שלב 2: בדיקת ייחודיות מספר רישוי אם הוא משתנה
     if (licensePlate && licensePlate !== vehicle.licensePlate) {
+        if (!isValidLicensePlate(licensePlate)) {
+            throw new Error('Invalid license plate: Must be 7 or 8 digits only.');
+        }
         const existingVehicle = await getVehicleByPlate(licensePlate);
         if (existingVehicle) {
             throw new Error(`Vehicle with license plate ${licensePlate} already exists.`);

@@ -1,19 +1,19 @@
 [
   {
     "id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
-    "licensePlate": "111-22-333",
+    "licensePlate": "11122333",
     "status": "Available",
     "createdAt": "2024-10-20T10:00:00Z"
   },
   {
     "id": "b2c3d4e5-f6a7-8901-2345-678901bcdef0",
-    "licensePlate": "444-55-666",
+    "licensePlate": "44455666",
     "status": "InUse",
     "createdAt": "2024-10-19T14:30:00Z"
   },
   {
     "id": "c3d4e5f6-a7b8-9012-3456-789012cdef01",
-    "licensePlate": "777-88-999",
+    "licensePlate": "77788999",
     "status": "Maintenance",
     "createdAt": "2024-10-18T08:00:00Z"
   }
