@@ -10,9 +10,10 @@ const VehicleStatus = {
     MAINTENANCE: 'Maintenance',
 };
 
-// --- Main App Component ---
+
+//  Main App Component
 export default function App() {
-    // --- State Management ---
+
     const [vehicles, setVehicles] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [plateToDelete, setPlateToDelete] = useState('');
@@ -23,7 +24,7 @@ export default function App() {
     const [filterStatus, setFilterStatus] = useState('all');
     const [sortCriteria, setSortCriteria] = useState('createdAt-desc');
 
-    // --- Error Handling Helper ---
+    // Error Handling Helper
     const handleApiError = (error, action = 'perform the action') => {
         console.error(error);
         if (error instanceof TypeError && error.message === 'Failed to fetch') {
@@ -34,7 +35,7 @@ export default function App() {
         }
     };
 
-    // --- Data Fetching (Updated) ---
+    // Data Fetching (Updated)
     const fetchVehicles = useCallback(async () => {
         setIsLoading(true);
         setNetworkError(null);
@@ -42,17 +43,17 @@ export default function App() {
         // Build query parameters
         const params = new URLSearchParams();
 
-        // 1. Add filter
+        // Add filter
         if (filterStatus !== 'all') {
             params.append('status', filterStatus);
         }
 
-        // 2. Add search
+        // Add search
         if (searchPlate.trim() !== '') {
             params.append('searchPlate', searchPlate.trim());
         }
 
-        // 3. Add sorting
+        // Add sorting
         const [sortBy, sortOrder] = sortCriteria.split('-');
         params.append('sortBy', sortBy);
         params.append('sortOrder', sortOrder);
@@ -71,6 +72,7 @@ export default function App() {
         } finally {
             setIsLoading(false);
         }
+
         // fetchVehicles
     }, [searchPlate, filterStatus, sortCriteria]);
 
@@ -78,7 +80,8 @@ export default function App() {
         fetchVehicles();
     }, [fetchVehicles]);
 
-    // --- API Handlers ---
+
+    // API Handlers
 
     const handleAddVehicle = async () => {
         const licensePlate = prompt("Enter the new vehicle's license plate:");
@@ -99,6 +102,7 @@ export default function App() {
             }
 
             fetchVehicles();
+
         } catch (error) {
             handleApiError(error, 'add a new vehicle');
         }

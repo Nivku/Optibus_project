@@ -34,17 +34,18 @@ beforeEach(() => {
     `);
 });
 
-// Function to run *after* each test
+// Function to run after each test
 afterEach(() => {
     sqliteDb.close();
     vi.restoreAllMocks();
 });
 
-// --- Test Suite for vehicleService ---
+// Test Suite for vehicleService
 describe('Vehicle Service', () => {
 
-    // --- Tests for createVehicle ---
+    // Tests for createVehicle
     describe('createVehicle', () => {
+
         // These tests don't need many vehicles, run as before
         it('should create a new vehicle successfully', async () => {
             const plate = '1234567';
@@ -97,13 +98,14 @@ describe('Vehicle Service', () => {
         let vehicleId: string;
         const initialPlate = '1111111';
 
-        // **MODIFICATION**: Add enough vehicles for 5% rule testing
+        // Add enough vehicles for 5% rule testing
         beforeEach(async () => {
+
             // Create the main vehicle we'll test with
             const vehicle = await vehicleService.createVehicle(initialPlate);
             vehicleId = vehicle.id;
 
-            // Add 19 dummy vehicles so total is 20, allowing 1 in maintenance
+            // Add 19 dummy vehicles.
             const dummyVehicles = [];
             for (let i = 0; i < 19; i++) {
                 dummyVehicles.push({
@@ -190,11 +192,11 @@ describe('Vehicle Service', () => {
         });
     });
 
-    // --- Tests for deleteVehicle ---
+    // Tests for deleteVehicle
     describe('deleteVehicle', () => {
         let vehicleId: string;
 
-        // **MODIFICATION**: Add enough vehicles for 5% rule testing if needed (though not directly needed for delete logic itself, keeps setup consistent)
+
         beforeEach(async () => {
             const vehicle = await vehicleService.createVehicle('5555555');
             vehicleId = vehicle.id;

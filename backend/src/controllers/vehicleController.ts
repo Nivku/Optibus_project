@@ -2,6 +2,9 @@ import { Request, Response } from 'express';
 import * as vehicleService from '../services/vehicleService';
 import { VehicleStatus } from '../types/vehicleModel';
 
+
+
+// Handler to get all the vehicles
 export const handleGetAllVehicles = async (req: Request, res: Response) => {
     try {
         const { status, sortBy, sortOrder, searchPlate } = req.query;
@@ -19,6 +22,7 @@ export const handleGetAllVehicles = async (req: Request, res: Response) => {
     }
 };
 
+// Handler to add a single vehicle by ID
 export const handleCreateVehicle = async (req: Request, res: Response) => {
     try {
         const { licensePlate } = req.body;
@@ -39,6 +43,8 @@ export const handleCreateVehicle = async (req: Request, res: Response) => {
     }
 };
 
+
+// Handler to update a single vehicle by ID plate.
 export const handleUpdateVehicle = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
@@ -80,6 +86,7 @@ export const handleUpdateVehicle = async (req: Request, res: Response) => {
     }
 };
 
+// Handler to delete a single vehicle by ID plate.
 export const handleDeleteVehicle = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;

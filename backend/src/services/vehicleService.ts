@@ -5,21 +5,25 @@ import { randomUUID } from 'crypto';
 import { eq, sql, and, like, asc, desc } from 'drizzle-orm';
 
 
+// Create a new vehicle in the database
 const getVehicleById = async (id: string): Promise<Vehicle | undefined> => {
     const result = await db.select().from(vehicles).where(eq(vehicles.id, id));
     return result[0];
 };
 
+// Retrieve a vehicle in the database
 const getVehicleByPlate = async (plate: string): Promise<Vehicle | undefined> => {
     const result = await db.select().from(vehicles).where(eq(vehicles.licensePlate, plate));
     return result[0];
 };
 
+// Check if a the license plate is valid
 const isValidLicensePlate = (plate: string): boolean => {
     const plateRegex = /^\d{7,8}$/;
     return plateRegex.test(plate);
 };
 
+// Check if a vehicle can be moved to maintenance
 const canMoveToMaintenance = async (): Promise<boolean> => {
     const totalCountResult = await db.select({ count: sql<number>`count(*)` }).from(vehicles);
     const maintenanceCountResult = await db.select({ count: sql<number>`count(*)` }).from(vehicles).where(eq(vehicles.status, VehicleStatus.Maintenance));
@@ -30,7 +34,7 @@ const canMoveToMaintenance = async (): Promise<boolean> => {
 };
 
 
-
+// Retrieve all vehicles in the database
 export const getAllVehicles = async (options: {
     status?: VehicleStatus;
     sortBy?: 'createdAt' | 'status';
@@ -63,6 +67,8 @@ export const getAllVehicles = async (options: {
     return await db.query.vehicles.findMany(queryOptions);
 };
 
+
+// Create a new vehicle in the database
 export const createVehicle = async (licensePlate: string): Promise<Vehicle> => {
     if (!isValidLicensePlate(licensePlate)) {
         throw new Error('Invalid license plate: Must be 7 or 8 digits only.');
@@ -82,6 +88,8 @@ export const createVehicle = async (licensePlate: string): Promise<Vehicle> => {
     return result[0];
 };
 
+
+// Update an existing vehicle in the database if exist
 export const updateVehicle = async (
     id: string,
     data: { licensePlate?: string; status?: VehicleStatus }
@@ -130,6 +138,8 @@ export const updateVehicle = async (
 
     return result[0];
 };
+
+// Delete an existing vehicle in the database if exist
 
 export const deleteVehicle = async (id: string): Promise<boolean> => {
     const vehicle = await getVehicleById(id);

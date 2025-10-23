@@ -3,6 +3,8 @@ import { vehicles } from './schema';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// Seed the database with vehicle data from vehicles.json
+
 async function seed() {
     try {
         console.log('Starting to seed the database...');

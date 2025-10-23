@@ -2,6 +2,8 @@ import { sql } from 'drizzle-orm';
 import { text, sqliteTable } from 'drizzle-orm/sqlite-core';
 import { VehicleStatus } from '../types/vehicleModel';
 
+// Define the table schema for the "vehicles" table in SQLite.
+
 export const vehicles = sqliteTable('vehicles', {
     id: text('id').primaryKey(),
 

@@ -1,7 +1,8 @@
 # Optibus Fullstack Home Assignment - Vehicle Management App
 
-This project includes a backend API (Node.js, Express, TypeScript, Drizzle ORM with SQLite) and a 
-frontend application (React, Vite).
+This project includes a backend Part (Node.js, Express, TypeScript, Drizzle ORM with SQLite) and a 
+frontend application (React, Vite). I used Drizzle to make it easier to connect with the database.
+
 
 
 
@@ -57,6 +58,8 @@ npm install
 ```
 npm run dev
 ```
+
+4. Open the app on http://localhost:5173/
 
 
 ##  3. Running Backend Tests:
